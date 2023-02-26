@@ -467,6 +467,72 @@ void TestRelevance() {
     
 }
 
+void TestRelevanceTop() {
+    SearchServer server;
+    server.AddDocument(1, "dog walks on street", DocumentStatus::ACTUAL, { 1,2,3 });
+    server.AddDocument(2, "cat walks around", DocumentStatus::ACTUAL, { 3,4,5 });
+    server.AddDocument(3, "cat walks in cat home ", DocumentStatus::ACTUAL, { 3,4,5 });
+
+
+    {
+        const auto doc = server.FindTopDocuments("cat walks");
+        
+        ASSERT(doc[0].relevance > doc[1].relevance);
+        ASSERT(doc[1].relevance > doc[2].relevance);
+
+    }
+
+
+}
+
+void TestStatus() {
+    SearchServer server;
+    server.AddDocument(1, "dog walks on street", DocumentStatus::ACTUAL, { 1,2,3 });
+    server.AddDocument(2, "cat walks around", DocumentStatus::ACTUAL, { 3,4,5 });
+    server.AddDocument(3, "cat walks in cat home ", DocumentStatus::BANNED, { -3,4,5 });
+    server.AddDocument(4, "cat walks", DocumentStatus::IRRELEVANT, { 10,4,5 });
+    server.AddDocument(5, "cat go for a walk", DocumentStatus::IRRELEVANT, { 10,4,5 });
+
+
+    {
+        const auto doc = server.FindTopDocuments("cat walks", DocumentStatus::BANNED);
+        int s1 = doc.size();
+        ASSERT(s1==1);
+        const auto doc2 = server.FindTopDocuments("cat walks", DocumentStatus::IRRELEVANT);
+        int s2 = doc2.size();
+        ASSERT(s2 == 2);
+        const auto doc3 = server.FindTopDocuments("cat walks", DocumentStatus::ACTUAL);
+        int s3 = doc3.size();
+        ASSERT(s3 == 2);
+        const auto doc4 = server.FindTopDocuments("cat walks", DocumentStatus::REMOVED);
+        int s4 = doc4.size();
+        ASSERT(s4 == 0);
+
+    }
+
+
+}
+void TestPredicate() {
+    SearchServer server;
+    server.AddDocument(1, "dog walks on street", DocumentStatus::ACTUAL, { 1,2,3 });
+    server.AddDocument(2, "cat walks around", DocumentStatus::ACTUAL, { 3,4,5 });
+    server.AddDocument(3, "cat around", DocumentStatus::ACTUAL, { 1,1,5 });
+
+
+    {
+        const auto doc = server.FindTopDocuments("cat walks"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; });
+        int s1 = doc.size();
+        ASSERT(s1 == 1);
+        const auto doc2 = server.FindTopDocuments("cat walks"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 != 0; });
+        int s2 = doc2.size();
+        ASSERT(s2 == 2);
+    }
+
+
+}
+
+
+
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
     RUN_TEST (TestExcludeStopWordsFromAddedDocumentContent);
@@ -475,7 +541,9 @@ void TestSearchServer() {
     RUN_TEST(TestMatchDocument);
     RUN_TEST(TestRating);
     RUN_TEST(TestRelevance);
-    
+    RUN_TEST(TestRelevanceTop);
+    RUN_TEST(TestStatus);
+    RUN_TEST(TestPredicate);
     // Не забудьте вызывать остальные тесты здесь
 }
 
