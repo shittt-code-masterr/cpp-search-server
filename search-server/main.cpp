@@ -7,11 +7,12 @@
 #include <utility>
 #include <vector>
 #include <optional>
+#include <numeric>
 using namespace std;
 
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
-
+const int EPSILON = 1e-6;
 string ReadLine() {
     string s;
     getline(cin, s);
@@ -81,13 +82,13 @@ enum class DocumentStatus {
 class SearchServer {
 public:
 
-    inline static constexpr int INVALID_DOCUMENT_ID = -1;
+   
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words) 
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-        for (const string word : MakeUniqueNonEmptyStrings(stop_words)) {
+        for (const string word : stop_words_    ) {
             if (!IsValidWord(word)) {
-                throw invalid_argument("Oops"s);
+                throw invalid_argument("invalid_argument"s);
             }
         }
     }
@@ -96,17 +97,14 @@ public:
         : SearchServer(
             SplitIntoWords(stop_words_text))  // Invoke delegating constructor from string container
     {
-        if (!IsValidWord(stop_words_text)) {
-            throw invalid_argument("Oops"s);
-        }
     }
 
     void AddDocument(int document_id, const string& document, DocumentStatus status, const vector<int>& ratings) {
-        if (document_id<0|| documents_.count(document_id)!=0) {
-            throw invalid_argument("Oops"s);
+        if (document_id<0 || documents_.count(document_id) != 0) {
+            throw invalid_argument("invalid_argument"s);
         }
         if (!IsValidWord(document)) {
-            throw invalid_argument("Oops"s);
+            throw invalid_argument("invalid_argument"s);
         }
         const vector<string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
@@ -123,7 +121,7 @@ public:
     //----------------------------------------------------------------------------
     int GetDocumentId(int index) const {
         if (index < 0 || index > doc_id_.size()) {
-            throw out_of_range("Oops"s);
+            throw out_of_range("out_of_range"s);
         }
         return doc_id_[index];
     
@@ -132,15 +130,13 @@ public:
     template <typename DocumentPredicate>
     vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
         vector<Document > result;
-        Query query;
-        if (!ParseQuery(raw_query, query)) {
-            throw invalid_argument("Oops"s);
-        }
+        Query query = ParseQuery(raw_query, query);
+       
         result = FindAllDocuments(query, document_predicate);
 
         sort(result.begin(), result.end(),
             [](const Document& lhs, const Document& rhs) {
-                if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+                if (abs(lhs.relevance - rhs.relevance) < EPSILON) {
                     return lhs.rating > rhs.rating;
                 }
                 else {
@@ -175,10 +171,8 @@ public:
 
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
 
-        Query query;
-        if (!ParseQuery(raw_query, query)) {
-            throw invalid_argument("Oops"s);
-        }
+        Query query = ParseQuery(raw_query);
+        
         vector<string> matched_words;
         for (const string& word : query.plus_words) {
             if (word_to_document_freqs_.count(word) == 0) {
@@ -237,12 +231,7 @@ private:
         if (ratings.empty()) {
             return 0;
         }
-
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
-        return rating_sum / static_cast<int>(ratings.size());
+        return  accumulate(ratings.begin(), ratings.end(), 0) / static_cast<int>(ratings.size());
     }
 
     struct QueryWord {
@@ -251,24 +240,23 @@ private:
         bool is_stop;
     };
 
-    [[nodiscard]] bool ParseQueryWord(string text, QueryWord &query_word) const {
+    QueryWord ParseQueryWord(string text) const {
         
         bool is_minus = false;
 
         // Word shouldn't be empty
-
+        text = text.substr(1);
         if (text[0] == '-' ) {
-            if (text[1] == '-' ) {
-                return false;
-            
-                
-            }
             is_minus = true;
             text = text.substr(1);
+            if (text[1] == '-') {
+                throw invalid_argument("invalid_argument"s);
+            }
+            if (!IsValidWord(text)) {
+                throw invalid_argument("invalid_argument"s);
+            }
         }
-        
-        query_word = { text, is_minus, IsStopWord(text) };
-        return true ;
+        return { text, is_minus, IsStopWord(text) };;
     }
 
     struct Query {
@@ -276,19 +264,13 @@ private:
         set<string> minus_words;
     };
 
-    [[nodiscard]] bool ParseQuery(const string& text, Query& query) const {
-        if (!IsValidWord(text)) {
-            return false;
-        }
-        if (text[text.size() - 1] == '-') {
-            return false;
-        }
+    
+    Query ParseQuery(const string& text) const {
+        Query query;
         for (const string& word : SplitIntoWords(text)) {
 
-            QueryWord query_word;
-            if (!ParseQueryWord(word, query_word)) {
-                return false;
-            }
+            QueryWord query_word = ParseQueryWord(word);
+          
             if (!query_word.is_stop) {
                 if (query_word.is_minus) {
                     query.minus_words.insert(query_word.data);
@@ -298,7 +280,7 @@ private:
                 }
             }
         }
-        return true;
+        return query;
     }
 
     // Existence required
@@ -349,4 +331,3 @@ void PrintDocument(const Document& document) {
         << "relevance = "s << document.relevance << ", "s
         << "rating = "s << document.rating << " }"s << endl;
 }
-
