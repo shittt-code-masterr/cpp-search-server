@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 #include "document.h"
-
+#include "string_processing.h"
 class SearchServer {
 public:
     template <typename StringContainer>
@@ -75,7 +75,7 @@ private:
 };
 
 template <typename StringContainer>
-explicit SearchServer::SearchServer(const StringContainer& stop_words)
+SearchServer::SearchServer(const StringContainer& stop_words)
     : stop_words_(MakeUniqueNonEmptyStrings(stop_words))  
 {
     using namespace std::string_literals;

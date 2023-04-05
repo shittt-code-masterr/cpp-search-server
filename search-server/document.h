@@ -2,6 +2,7 @@
 #include <set>
 #include <iostream>
 #include <string>
+#include <vector>
 
 enum class DocumentStatus {
     ACTUAL,

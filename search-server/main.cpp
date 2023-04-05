@@ -4,6 +4,7 @@
 #include"read_input_function.h"
 #include"request_queue.h"
 #include"paginator.h"
+#include"string_processing.h"
 
 using namespace std;
 
