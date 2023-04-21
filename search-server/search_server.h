@@ -10,6 +10,7 @@
 #include <vector>
 #include "document.h"
 #include "string_processing.h"
+
 class SearchServer {
 public:
     template <typename StringContainer>
@@ -33,12 +34,7 @@ public:
     void RemoveDocument(int document_id);
         
     std::set<int>::iterator  begin() const;
-
-    
-
     std::set<int>::iterator  end() const;
-
-
 
     const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
