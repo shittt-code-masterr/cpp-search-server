@@ -28,10 +28,19 @@ public:
 
     int GetDocumentCount() const;
 
-    int GetDocumentId(int index) const;
-
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
+
+    void RemoveDocument(int document_id);
         
+    std::set<int>::iterator  begin() const;
+
+    
+
+    std::set<int>::iterator  end() const;
+
+
+
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
 private:
     struct DocumentData {
@@ -40,8 +49,9 @@ private:
     };
     const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, std::map<std::string, double>> word_to_document_;
     std::map<int, SearchServer::DocumentData> documents_;
-    std::vector<int> document_ids_;
+    std::set<int> document_ids_;
     const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 
@@ -142,4 +152,6 @@ void AddDocument(SearchServer& search_server, int document_id, const std::string
 void FindTopDocuments(const SearchServer& search_server, const std::string& raw_query);
 
 void MatchDocuments(const SearchServer& search_server, const std::string& query);
+
+void RemoveDuplicates(SearchServer& search_server);
 
