@@ -41,8 +41,9 @@ SearchServer::SearchServer(const std::string& stop_words_text)
 
     void SearchServer::RemoveDocument(int document_id) {
         using namespace std::string_literals;
-        if ((document_id > 0) || (documents_.count(document_id) != 0)) {
-
+        if ((document_id < 0) || (documents_.count(document_id) == 0)) {
+            return;
+        }
         
         for (const auto& [word, _] : word_to_document_[document_id]) { // как я понимаю, это и есть слова именно удаляемого документа, все слова лежат в word_to_document_freqs_, а в данной переменной по id получаются слова документа 
             if (word_to_document_freqs_[word].count(document_id) != 0) {
@@ -52,7 +53,7 @@ SearchServer::SearchServer(const std::string& stop_words_text)
         word_to_document_.erase(document_id);
         documents_.erase(document_id);
         document_ids_.erase(document_id);
-        }
+        
     };
 
     std::set<int>::iterator  SearchServer::begin() const { return document_ids_.begin(); };
@@ -88,8 +89,8 @@ SearchServer::SearchServer(const std::string& stop_words_text)
            return word_to_document_.at(document_id);
        }
        else {
-           std::map<std::string, double> m;
-           return m ;
+           std::map<std::string, double> empty_map_;
+           return empty_map_;
        }
    }
 
@@ -185,7 +186,7 @@ SearchServer::SearchServer(const std::string& stop_words_text)
     void FindTopDocuments(const SearchServer& search_server, const std::string& raw_query) {
         using namespace std::string_literals;
 
-        LOG_DURATION("Operation time"s);
+        //LOG_DURATION("Operation time"s);
             using namespace std::string_literals;
             std::cout << "Результаты поиска по запросу: "s << raw_query << std::endl;
             try {
