@@ -2,12 +2,12 @@
 
 void RemoveDuplicates(SearchServer& search_server) {
 
-	std::map<std::set<std::string>, int> document;
+	std::map<std::set<std::string_view>, int> document;
 	std::set<int> bad_id;
 	for (int document_id : search_server) {
-		std::map<std::string, double> doc;
+		std::map<std::string_view, double> doc;
 		doc = search_server.GetWordFrequencies(document_id);
-		std::set<std::string> unique_word;
+		std::set<std::string_view> unique_word;
 		for (auto& [word, _] : doc) {
 			unique_word.insert(word);
 		}
