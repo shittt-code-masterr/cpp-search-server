@@ -10,8 +10,8 @@
 #include <numeric>
 std::vector<std::vector<Document>> ProcessQueries(
     const SearchServer& search_server,
-    const std::vector<std::string_view>& queries);
+    const std::vector<std::string_view> queries);
 
 std::vector<Document>ProcessQueriesJoined(
     const SearchServer& search_server,
-    const std::vector<std::string_view>& queries);
+    const std::vector<std::string_view> queries);
