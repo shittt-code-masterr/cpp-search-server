@@ -9,7 +9,7 @@
 #include "log_duration.h"
 //#include "test_framework.h"
 
-using namespace std::string_literals;
+
 
 
 template <typename Key, typename Value>
@@ -59,7 +59,7 @@ public:
         return result;
     }
 
-    void erase(const Key& key) {
+    void Erase(const Key& key) {
         auto& bucket = buckets_[static_cast<uint64_t>(key) % buckets_.size()];
         std::lock_guard<std::mutex> guard(bucket.mutex);
         bucket.map.erase(key);

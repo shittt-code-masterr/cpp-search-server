@@ -28,7 +28,7 @@ public:
     }
 
 private:
-    const std::string id_;
+    const std::string_view id_;
     std::ostream& os;
     const Clock::time_point start_time_ = Clock::now();
 };
